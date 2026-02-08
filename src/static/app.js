@@ -54,7 +54,38 @@ document.addEventListener("DOMContentLoaded", () => {
         if (details.participants && details.participants.length) {
           details.participants.forEach((p) => {
             const li = document.createElement("li");
-            li.textContent = p;
+            li.className = "participant-item";
+
+            const span = document.createElement("span");
+            span.textContent = p;
+            span.className = "participant-email";
+
+            const btn = document.createElement("button");
+            btn.className = "participant-delete";
+            btn.title = `Unregister ${p}`;
+            btn.innerHTML = "\uD83D\uDDD1"; // trashcan emoji
+            btn.addEventListener("click", async (ev) => {
+              ev.preventDefault();
+              try {
+                const res = await fetch(
+                  `/activities/${encodeURIComponent(name)}/unregister?email=${encodeURIComponent(p)}`,
+                  { method: "DELETE" }
+                );
+                const result = await res.json();
+                if (!res.ok) {
+                  showMessage(result.detail || result.message || "Failed to unregister.", "error");
+                  return;
+                }
+                showMessage(result.message || "Unregistered.", "success");
+                await fetchActivities();
+              } catch (error) {
+                showMessage("Network error.", "error");
+                console.error("Error unregistering:", error);
+              }
+            });
+
+            li.appendChild(span);
+            li.appendChild(btn);
             ul.appendChild(li);
           });
         } else {
